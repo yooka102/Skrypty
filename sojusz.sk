@@ -1,0 +1,627 @@
+#------------------------------------------------------#
+# Licencja: Sojusz by Yooka                            #
+#------------------------------------------------------#
+#  Nie zezwalam na:                                    #
+#- Zarabianie na skrypcie                              #
+#- Przerabianie/modyfikowanie                          #
+#- Wykorzystywanie kodu skryptu w swoich skryptach     #
+#- Udostepnianiu skryptu innym bez zgody autora        #
+#- Usuwanie tresci zawierajacych iformacje autora      #
+#- Podszywanie sie pod autora                          #
+# Zezwalam na:                                         #
+# - Modyfikowanie wiadomosci skryptu na wlasne         #
+#   potrzeby                                           #
+#------------------------------------------------------#
+# Mylnie odczytana licencja nie zwalnia z              #
+# przestrzegania jej                                   #
+#------------------------------------------------------#
+variables:
+#---Konfiguracja komendami---#
+	{sojusz.ochronapvp} = true
+	{sojusz.tp} = true
+	{sojusz.tp.oczekiwanie} = true
+	{sojusz.czat.%player%} = false
+	{sojusz.rodzaj.zaplaty.za.tp} = "kasa" 
+	{sojusz.rodzaj.zaplaty.za.zaproszenie} = "kasa" 
+	{sojusz.rodzaj.zaplaty.domnietp} = "kasa"
+	{sojusz.tpdomnie} = true
+options:
+	tag-sojusz: &6&L[Sojusz]
+	tag-zaproszeni: &6&LLista Zaproszonych Osob
+	tag-lista: &6&LLista Osob w Sojuszu
+	tag-oczekujace: &6&LLista Oczekujacych Zaproszen
+	tag-sczat: &f[&6Sojusz-Czat&f]
+
+#---Ustawienia-Platnosci---#
+	kasa.za.domnie: 500
+	przedmiot.za.domnie: 2 diamond
+	przemiot.do.tp: 3 stone
+	kasa.za.tp: 100
+	przedmiot.za.zaproszenie: 1 diamond
+	kasa.za.zaproszenie: 750
+	koszt.aktywacji: 1000
+	sojusz.tp.czas: 3
+	sojusz.tp.sound: mob.endermen.portal
+	
+
+#---Komunikaty---#
+	sojusz.perm: &4Nie masz uprawnien do uzywania tej komendy
+	sojusz.noarg: &4Nieprawidlowa komenda
+	sojusz.graczoffline: &4Mozesz zaprosic tylko graczy online
+	sojusz.nooczekujace: &4Gracz %arg 2% nie znajduje sie na liscie oczekujacych zaproszen
+	sojusz.nooczekujace2: &4Aby sprawdzic liste oczekujacych zaproszen wpisz /sojusz oczekujace
+	sojusz.pvp.off: &6Wylaczono ochrone pvp w sojuszu
+	sojusz.pvp.on: &6Wlaczono ochrone pvp w sojuszu
+	sojusz.warn.sojusz.istanieje: &4Masz juz sojusz z %arg 2%
+	sojusz.warn.sojusz.oczekujace: &4Gracz %arg 2% zaprosil cie do sojuszu i oczekuje na akceptacje
+	sojusz.warn.sojusz.zaproszeni: &4Zaprosiles juz %arg 2% do sojuszu. Aby sprawdzic liste zaproszonych osob wpisz /sojusz zaproszeni
+	sojusz.nopvp: &4Nie mozesz atakowac swojego sojusznika.
+	sojusz.nolista: &4Nie masz sojuszu z %arg 2%
+	sojusz.tp.off: &4Teleportacja do sojusznikow zostala wylaczona
+	sojusz.graczoffline.tp: &4Gracz jest offline
+	sojusz.tp.ok: &3Zostales przeniesiony do gracza %arg 2%
+	sojusz.braksojusznikow: &4Nie masz zadnych sojusznikow
+	sojusz.tp.brakprzedmiotu: &4Aby przeniesc sie do %arg 2% potrzebujesz
+	sojusz.tp.deny: &4Teleportacja anulowana!
+	sojusz.null.oczekujacych: &2Lista oczekujacych jest pusta
+	sojusz.null.zaproszeni: &2Lista zaproszonych jest pusta
+	sojusz.null.lista: &2Lista sojusznikow jest pusta
+	sojusz.nie.oplacone: &cAby uzyskac dostep do sojuszu musisz uiscic jednorazowa oplate -&2/sojusz zaplac
+	sojusz.aktywacja.oplacono: &2Zaplaciles za dostep do sojuszu
+	sojusz.aktywacja.msgkoszt: &cKoszta dostepu do sojuszu to
+	sojusz.aktywacja.jeslioplacono: &2Oplaciles juz dostep do sojuszu
+#---v0.3---#
+	sojusz.warn.koszt.zaproszenia: &4Aby zaprosic &6%arg 2% &4potrzebujesz&3
+	sojusz.zaprosiles: &2Zaprosiles &a%arg 2% &2do sojuszu
+	sojusz.no.usun.arg2: &4Nie podales nazwy gracza do usniecia &6/sojusz usun <nazwa gracza>
+	sojusz.brak.domnie: &4Aby przeniesc sojusznikow potrzebujesz&3
+	sojusz.domnie.offline: &4Nikt nie jest online
+	sojusz.odrzuciles: &3Odrzuciles zaproszenia gracza &a%arg 2%
+	sojusz.lista.online: &6&LLista Sojusznikow - Online
+#---v0.4---#
+	sojusz.domnie.tp.off: &4Teleportacja DoMnie jest wylaczona
+#---Skrypt---#
+	komendy-sojusz: "pomoc" or "help" or "dodaj" or "add" or "zaproszeni" or "oczekujace" or "akceptuj" or "accept" or "lista" or "pvp" or "usun" or "autor" or "wersja" or "version" or "tp" or "sprawdz" or "ustawienia" or "oczekiwanie" or "teleportacja" or "odrzuc" or "anuluj" or "reload" or "przeladuj" or "czat" or "online" or "zaplac" or "zapros" or "a" or "domnie" or "l" or "adminmenu"
+	wersja-sojusz: 0.4 plus
+	sojusz-komenda: sojusz
+	plik-sojusz: sojusz
+	sojusz-nazwa: Sojusz by Yooka
+
+command /{@sojusz-komenda} [<text>] [<text>] [<text>]:
+	description: Sojusz.
+	trigger:
+		arg 1 is not set:
+			send "{@tag-sojusz}"
+			send "&3/{@sojusz-komenda} pomoc &f- informacje dotyczace komend"
+			send "&3/{@sojusz-komenda} autor &f- informacje autora"
+		arg 1 is not {@komendy-sojusz}:
+			send "{@tag-sojusz}: {@sojusz.noarg}"
+			stop trigger
+		arg 1 is "pomoc" or "help":
+			arg 2 is not set:
+				if player has permission "sojusz.use.pomoc":
+					send "&6&LPomoc Sojusz by Yooka &f[&61&f/&63&f]"
+					send "&3/{@sojusz-komenda} dodaj <nazwa gracza> &f- aby zaprosic gracza do sojuszu"
+					send "&3/{@sojusz-komenda} usun <nazwa gracza> &f- aby usunac gracza z sojuszu"
+					send "&3/{@sojusz-komenda} akceptuj <nazwa gracza> &f- aby zaakceptowac zaproszenie gracza"
+					send "&3/{@sojusz-komenda} odrzuc <nazwa gracza> &f- aby odrzucic zaproszenie gracza"
+					send "&3/{@sojusz-komenda} zaproszeni &f- Lista wyslanych zaproszen"
+					send "&3/{@sojusz-komenda} oczekujace &f- Lista oczekujacych zaproszen"
+					send "&3/{@sojusz-komenda} lista &f- Lista osob w sojuszu"
+				if player has permission "sojusz.tp":
+					send "&3/{@sojusz-komenda} tp <nazwa gracza>&f- Aby przeniesc sie do osoby w sojuszu"
+				if player has permission "sojusz.domnie":
+					send "&3/{@sojusz-komenda} domnie&f- Aby przeniesc wszystkie osoby w sojuszu do Ciebie"
+				else:
+					send "{@sojusz.perm}"
+			arg 2 is "2":
+				if player has permission "sojusz.use.pomoc":
+					send "&6&LPomoc Sojusz by Yooka &f[&62&f/&63&f]"
+					send "&3/{@sojusz-komenda} zaplac &f- aby oplacic dostep do sojuszu"
+					send "&3/{@sojusz-komenda} czat on/off &f- aby wlaczyc lub wylaczyc Czat Sojuszu"
+					send "&3/{@sojusz-komenda} online &f- aby sprawdzic kto z sojuszu jest online"
+				if player has permission "sojusz.admin.pomoc":
+					send "&3/{@sojusz-komenda} pvp on/off &f- aby wlaczyc lub wylaczyc pvp w sojuszu"
+					send "&3/{@sojusz-komenda} oczekiwanie on/off &f- aby wlaczyc lub wylaczyc oczekiwanie na teleport"
+					send "&3/{@sojusz-komenda} teleportacja on/off &f- aby wlaczyc lub wylaczyc teleportacje w sojuszu"
+					send "&3/{@sojusz-komenda} sprawdz <nazwa gracza> &f- aby sprawdzic wszystkie listy gracza"
+					send "&3/{@sojusz-komenda} ustawienia &f- wyswietla ustawienia skryptu"
+					send "&3/{@sojusz-komenda} reload &f- przeladowuje skrypt"
+				else:
+					send "{@sojusz.perm}"
+			arg 2 is "3":
+				if player has permission "sojusz.admin.pomoc":
+					send "&6&LPomoc Sojusz by Yooka &f[&63&f/&63&f]"
+					send "&3/{@sojusz-komenda} ustawienia zaproszenie kasa/przedmiot &f- aby zmienic rodzaj zaplaty za zaproszenie"
+					send "&3/{@sojusz-komenda} ustawienia teleportacja kasa/przedmiot &f- aby zmienic rodzaj zaplaty za teleportacje"
+					send "&3/{@sojusz-komenda} ustawienia domnie kasa/przedmiot &f- aby zmienic rodzaj zaplaty za tp domnie"
+				else:
+					send "{@sojusz.perm}"
+		arg 1 is "dodaj" or "add" or "zapros":
+			if player has permission "sojusz.use.add":
+				if {sojusz.aktywacja.%name of player%} is not set:
+					set {sojusz.aktywacja.%name of player%} to false
+				arg 2 parsed as player is not set:
+					send "{@tag-sojusz}: {@sojusz.graczoffline}"
+					stop trigger
+				if {sojusz.aktywacja.%name of player%} is true:
+					loop {sojusz.%arg 2%.lista::*}:
+						if loop-value is name of player:
+							send "{@tag-sojusz}: {@sojusz.warn.sojusz.istanieje}"
+							stop trigger
+					loop {sojusz.%arg 2%.zaproszeni::*}:
+						if loop-value is name of player:
+							send "{@tag-sojusz}: {@sojusz.warn.sojusz.oczekujace}"
+							stop trigger
+					loop {sojusz.%name of player%.zaproszeni::*}:
+						if loop-value is arg 2:
+							send "{@tag-sojusz}: {@sojusz.warn.sojusz.zaproszeni}"
+							stop trigger
+					arg 2 parsed as player is online:
+						if {sojusz.rodzaj.zaplaty.za.zaproszenie} is "kasa":
+							if player's balance is greater than or equal to {@kasa.za.zaproszenie}:
+								add name of player to {sojusz.%arg 2%.oczekujace::*}
+								add arg 2 to {sojusz.%name of player%.zaproszeni::*}
+								remove {@kasa.za.zaproszenie} from the player's balance
+								send "{@tag-sojusz}: {@sojusz.zaprosiles}"
+								send "{@tag-sojusz}: &3&LGracz &a%name of player% &3zaprosil Cie do Sojuszu" to arg 2 parsed as player
+							else:
+								send "{@tag-sojusz}: {@sojusz.warn.koszt.zaproszenia} {@kasa.za.zaproszenie} $"
+								stop trigger
+						if {sojusz.rodzaj.zaplaty.za.zaproszenie} is "przedmiot":
+							if player has {@przedmiot.za.zaproszenie}:
+								add name of player to {sojusz.%arg 2%.oczekujace::*}
+								add arg 2 to {sojusz.%name of player%.zaproszeni::*}
+								remove {@przedmiot.za.zaproszenie} from player's inventory
+								send "{@tag-sojusz}: {@sojusz.zaprosiles}"
+								send "{@tag-sojusz}: &3&LGracz &a%name of player% &3zaprosil Cie do Sojuszu" to arg 2 parsed as player
+							else:
+								send "{@tag-sojusz}: {@sojusz.warn.koszt.zaproszenia} {@przedmiot.za.zaproszenie}"
+								stop trigger
+				else:
+					send "{@tag-sojusz}: {@sojusz.nie.oplacone}"
+					stop trigger
+			else:
+				send "{@sojusz.perm}"
+				stop trigger
+		arg 1 is "zaplac":
+			if player has permission "sojusz.use.zaplac":
+				if {sojusz.aktywacja.%name of player%} is not set:
+					set {sojusz.aktywacja.%name of player%} to false
+				if {sojusz.aktywacja.%name of player%} is false:
+					if player's balance is greater than or equal to {@koszt.aktywacji}:
+						remove {@koszt.aktywacji} from the player's balance
+						set {sojusz.aktywacja.%name of player%} to true
+						send "{@tag-sojusz}: {@sojusz.aktywacja.oplacono}"
+					else:
+						send "{@tag-sojusz}: {@sojusz.aktywacja.msgkoszt} {@koszt.aktywacji} $"
+						stop trigger
+				else:
+					send "{@tag-sojusz}: {@sojusz.aktywacja.jeslioplacono}"
+					stop trigger
+			else:
+				send "{@sojusz.perm}"
+				stop trigger
+		arg 1 is "zaproszeni":
+			if player has permission "sojusz.use.zaproszeni":
+				if size of {sojusz.%name of player%.zaproszeni::*} is smaller than 1:
+					send "{@tag-sojusz}: {@sojusz.null.zaproszeni}"
+					stop trigger
+				send "{@tag-zaproszeni}:"
+				loop {sojusz.%name of player%.zaproszeni::*}:
+					send "&6%loop-index%:<reset> %loop-value%"
+			else:
+				send "{@sojusz.perm}"
+				stop trigger
+		arg 1 is "oczekujace":
+			if player has permission "sojusz.use.oczekujace":
+				if size of {sojusz.%name of player%.oczekujace::*} is smaller than 1:
+					send "{@tag-sojusz}: {@sojusz.null.oczekujacych}"
+					stop trigger
+				send "{@tag-oczekujace}:"
+				loop {sojusz.%name of player%.oczekujace::*}:
+					send "&6%loop-index%:<reset> %loop-value%"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "akceptuj" or "accept" or "a":
+			if player has permission "sojusz.use.akceptuj":
+				arg 2 is not set:
+					send "{@tag-sojusz}: /{@sojusz-komenda} akceptuj <nazwa gracza>"
+					stop trigger
+				if {sojusz.aktywacja.%name of player%} is true:
+					loop {sojusz.%name of player%.oczekujace::*}:
+						if loop-value is not arg 2:
+							send "{@tag-sojusz}: {@sojusz.nooczekujace}"
+							send "{@tag-sojusz}: {@sojusz.nooczekujace2}"
+							exit loop
+							stop trigger
+						if loop-value is arg 2:
+							remove arg 2 from {sojusz.%name of player%.oczekujace::*}
+							remove name of player from {sojusz.%arg 2%.zaproszeni::*}
+							add name of player to {sojusz.%arg 2%.lista::*}
+							add arg 2 to {sojusz.%name of player%.lista::*}
+							send "{@tag-sojusz}: &3Gracz %arg 2% zostal dodany do Sojuszu"
+							send "{@tag-sojusz}: &3Gracz %name of player% dodal Cie do Sojuszu" to arg 2 parsed as player
+							exit loop
+				else:
+					send "{@tag-sojusz}: {@sojusz.nie.oplacone}"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "odrzuc" or "anuluj":
+			if player has permission "sojusz.use.odrzuc":
+				arg 2 is not set:
+					send "{@tag-sojusz}: /{@sojusz-komenda} odrzuc <nazwa gracza>"
+					stop trigger
+				if size of {sojusz.%name of player%.oczekujace::*} is smaller than 1:
+					send "{@tag-sojusz}: &4Lista oczekujacych zaproszen jest pusta"
+					stop trigger
+				loop {sojusz.%name of player%.oczekujace::*}:
+					if loop-value is not arg 2:
+						send "{@tag-sojusz}: {@sojusz.nooczekujace}"
+						send "{@tag-sojusz}: {@sojusz.nooczekujace2}"
+						exit loop
+						stop trigger
+					if loop-value is arg 2:
+						remove arg 2 from {sojusz.%name of player%.oczekujace::*}
+						remove name of player from {sojusz.%arg 2%.zaproszeni::*}
+						send "{@tag-sojusz}: {@sojusz.odrzuciles}"
+						send "{@tag-sojusz}: &4Gracz &a%name of player% &4odrzucial twoje zaproszenie" to arg 2 parsed as player
+						exit loop
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "lista" or "l":
+			if player has permission "sojusz.use.lista":
+				if size of {sojusz.%name of player%.lista::*} is smaller than 1:
+					send "{@tag-sojusz}: {@sojusz.null.lista}"
+					stop trigger
+				send "{@tag-lista}:"
+				loop {sojusz.%name of player%.lista::*}:
+					send "&6%loop-index%:<reset> %loop-value%"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "pvp":
+			if player has permission "sojusz.admin.pvp":
+				if arg 2 is not set:
+					send "&3/{@sojusz-komenda} pvp on/off - aby wlaczycz lub wylaczyc pvp w sojuszu"
+				if arg 2 is "on" or "wlacz":
+					set {sojusz.ochronapvp} to true
+					send "{@tag-sojusz}: {@sojusz.pvp.on}"
+				if arg 2 is "off" or "wylacz":
+					set {sojusz.ochronapvp} to false
+					send "{@tag-sojusz}: {@sojusz.pvp.off}"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "oczekiwanie":
+			if player has permission "sojusz.admin.oczekiwanie":
+				if arg 2 is not set:
+					send "{@tag-sojusz}: &3/{@sojusz-komenda} oczekiwanie on/off - aby wlaczycz lub wylaczyc oczekiwanie teleportacji"
+				if arg 2 is "on" or "wlacz":
+					set {sojusz.tp.oczekiwanie} to true
+					send "{@tag-sojusz}: &3Oczekiwanie teleportacji zostalo wlaczone"
+				if arg 2 is "off" or "wylacz":
+					set {sojusz.tp.oczekiwanie} to false
+					send "{@tag-sojusz}: &4Oczekiwanie teleportacji zostalo wylaczone"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "teleportacja":
+			if player has permission "sojusz.admin.teleportacja":
+				if arg 2 is not set:
+					send "{@tag-sojusz}: &3/{@sojusz-komenda} teleportacja on/off - aby wlaczycz lub wylaczyc teleportacje"
+				if arg 2 is "on" or "wlacz":
+					set {sojusz.tp} to true
+					send "{@tag-sojusz}: &3Teleportacja zostala wlaczona"
+				if arg 2 is "off" or "wylacz":
+					set {sojusz.tp} to false
+					send "{@tag-sojusz}: &4Teleportacja zostala wylaczona"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "usun" or "u":
+			if player has permission "sojusz.use.usun":
+				if arg 2 is not set:
+					send "{@tag-sojusz}: {@sojusz.no.usun.arg2}"
+					stop trigger
+				loop {sojusz.%name of player%.lista::*}:
+					if loop-value is not arg 2:
+						send "{@tag-sojusz}: {@sojusz.nolista}"
+						exit loop
+						stop trigger
+					if loop-value is arg 2:
+						remove arg 2 from {sojusz.%name of player%.lista::*}
+						remove name of player from {sojusz.%arg 2%.lista::*}
+						send "{@tag-sojusz}: Usuneles %arg 2% z Sojuszu"
+						send "{@tag-sojusz}: &4Gracz &a%name of player% &4usunol Cie z listy Sojusznikow" to arg 2 parsed as player
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "sprawdz":
+			if player has permission "sojusz.admin.sprawdz":
+				arg 2 is not set:
+					send "{@tag-sojusz}: /{@sojusz-komenda} sprawdz <nazwa gracza>"
+					stop trigger
+				arg 2 is not empty:
+					send "&3&LSprawdzasz gracza - &4&L%arg 2%"
+					send "{@tag-lista} - &4&L%arg 2%:"
+					send "%{sojusz.%arg 2%.lista::*}%"
+					send "{@tag-zaproszeni} - &4&L%arg 2%:"
+					send "%{sojusz.%arg 2%.zaproszeni::*}%"
+					send "{@tag-oczekujace} - &4&L%arg 2%:"
+					send "%{sojusz.%arg 2%.oczekujace::*}%"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "autor" or "wersja" or "version":
+			send "{@tag-sojusz}"
+			send "&6Wersja: &7{@wersja-sojusz}"
+			send "&6Autor: &7Marcin Klekner&c(Yooka)"
+			send "&6URL: &7http://meee.pl/"	
+		arg 1 is "tp":
+			if player has permission "sojusz.tp":
+				if {sojusz.tp} is true:
+					arg 2 parsed as player is not set:
+						send "{@tag-sojusz}: {@sojusz.graczoffline.tp}"
+						stop trigger
+					arg 2 parsed as player is online:
+						if {sojusz.rodzaj.zaplaty.za.tp} is "przedmiot":
+							if player has {@przemiot.do.tp}:
+								if size of {sojusz.%name of player%.lista::*} is smaller than 1:
+									send "{@tag-sojusz}: {@sojusz.braksojusznikow}"
+									stop trigger
+								loop {sojusz.%name of player%.lista::*}:
+									if loop-value is arg 2:
+										if {sojusz.tp.oczekiwanie} is true:
+											apply nausea to player for {@sojusz.tp.czas} second
+											set {_sojuszpozycja.%name of player%} to location of player
+											send "{@tag-sojusz}: &4Teleportacja za {@sojusz.tp.czas} sekundy prosze sie nie ruszac ...."
+											loop {@sojusz.tp.czas} times:
+												if {_sojuszpozycja.%name of player%} isn't location of player:
+													send "{@tag-sojusz}: {@sojusz.tp.deny}"
+													stop
+												wait 1 second
+											if {_sojuszpozycja.%name of player%} is location of player:
+												teleport the player to location of the arg 2 parsed as player
+												execute console command "playsound {@sojusz.tp.sound} %player%"
+												remove {@przemiot.do.tp} from player's inventory
+												delete {_sojuszpozycja.%name of player%}
+												send "{@tag-sojusz}: {@sojusz.tp.ok}"
+												stop
+												exit loop
+										else:
+											teleport the player to location of the arg 2 parsed as player
+											execute console command "playsound {@sojusz.tp.sound} %player%"
+											remove {@przemiot.do.tp} from player's inventory
+											send "{@tag-sojusz}: {@sojusz.tp.ok}"
+											stop
+											exit loop
+									else:
+										send "{@tag-sojusz}: {@sojusz.nolista}"
+										stop
+										exit loop
+							else:
+								send "{@tag-sojusz}: {@sojusz.tp.brakprzedmiotu} &5{@przemiot.do.tp}"
+						if {sojusz.rodzaj.zaplaty.za.tp} is "kasa":
+							if player's balance is greater than or equal to {@kasa.za.tp}:
+								if size of {sojusz.%name of player%.lista::*} is smaller than 1:
+									send "{@tag-sojusz}: {@sojusz.braksojusznikow}"
+									stop trigger
+								loop {sojusz.%name of player%.lista::*}:
+									if loop-value is arg 2:
+										if {sojusz.tp.oczekiwanie} is true:
+											apply nausea to player for {@sojusz.tp.czas} second
+											set {_sojuszpozycja.%name of player%} to location of player
+											send "{@tag-sojusz}: &4Teleportacja za {@sojusz.tp.czas} sekundy prosze sie nie ruszac ...."
+											loop {@sojusz.tp.czas} times:
+												if {_sojuszpozycja.%name of player%} isn't location of player:
+													send "{@tag-sojusz}: {@sojusz.tp.deny}"
+													stop
+												wait 1 second
+											if {_sojuszpozycja.%name of player%} is location of player:
+												teleport the player to location of the arg 2 parsed as player
+												execute console command "playsound {@sojusz.tp.sound} %player%"
+												remove {@kasa.za.tp} from the player's balance
+												delete {_sojuszpozycja.%name of player%}
+												send "{@tag-sojusz}: {@sojusz.tp.ok}"
+												stop
+												exit loop
+										else:
+											teleport the player to location of the arg 2 parsed as player
+											execute console command "playsound {@sojusz.tp.sound} %player%"
+											remove {@kasa.za.tp} from the player's balance
+											send "{@tag-sojusz}: {@sojusz.tp.ok}"
+											stop
+											exit loop
+									else:
+										send "{@tag-sojusz}: {@sojusz.nolista}"
+										stop
+										exit loop
+							else:
+								send "{@tag-sojusz}: {@sojusz.tp.brakprzedmiotu} {@kasa.za.tp} $"
+
+				else:
+					send "{@tag-sojusz}: {@sojusz.tp.off}"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "ustawienia":
+			if player has permission "sojusz.admin.ustawienia":
+				if arg 2 is not set:
+					send "&2&LStatus Ustawien:"
+					send "&7Ochrona PvP: &4%{sojusz.ochronapvp}%"
+					if {sojusz.rodzaj.zaplaty.za.zaproszenie} is "kasa":
+						send "&7Koszt zaproszenia to &3{@kasa.za.zaproszenie} $"
+					if {sojusz.rodzaj.zaplaty.za.zaproszenie} is "przedmiot":
+						send "&7Koszt zaproszenia to &3{@przedmiot.za.zaproszenie}"
+					if {sojusz.rodzaj.zaplaty.za.tp} is "kasa":
+						send "&7Koszt teleporacji to &3{@kasa.za.tp} $"
+					if {sojusz.rodzaj.zaplaty.za.tp} is "przedmiot":
+						send "&7Koszt teleportacji: &3{@przemiot.do.tp}"
+					if {sojusz.rodzaj.zaplaty.domnietp} is "kasa":
+						send "&7Koszt domnie: &3{@kasa.za.domnie} $"
+					if {sojusz.rodzaj.zaplaty.domnietp} is "przedmiot":
+						send "&7Koszt domnie: &3{@przedmiot.za.domnie}"
+					send "&7Teleportacja do sojusznika: &4%{sojusz.tp}%"
+					send "&7Czas oczekiwania: &4%{sojusz.tp.oczekiwanie}% &3{@sojusz.tp.czas} sekundy"
+					send "&7Koszt aktywacji: &3{@koszt.aktywacji} $"
+					send "&7Teleportacja DoMnie: &4%{sojusz.tpdomnie}%"
+				if arg 2 is "teleportacja" or "tp":
+					if arg 3 is not set:
+						send "{@tag-sojusz}: &4/{@sojusz-komenda} ustawienia teleportacja kasa/przedmiot"
+					if arg 3 is "kasa" or "k":
+						set {sojusz.rodzaj.zaplaty.za.tp} to "kasa"
+						send "{@tag-sojusz}: &2Zmieniono rodzaj zaplaty za teleportacje na &6kasa"
+					if arg 3 is "przedmiot" or "p":
+						set {sojusz.rodzaj.zaplaty.za.tp} to "przedmiot"
+						send "{@tag-sojusz}: &2Zmieniono rodzaj zaplaty za teleportacje na &6przedmiot"
+				if arg 2 is "zaproszenie" or "z":
+					if arg 3 is not set:
+						send "{@tag-sojusz}: &4/{@sojusz-komenda} zaproszenie kasa/przedmiot"
+					if arg 3 is "kasa" or "k":
+						set {sojusz.rodzaj.zaplaty.za.zaproszenie} to "kasa"
+						send "{@tag-sojusz}: &2Zmieniono rodzaj zaplaty za zaproszenie na &6kasa"
+					if arg 3 is "przedmiot" or "p":
+						set {sojusz.rodzaj.zaplaty.za.zaproszenie} to "przedmiot"
+						send "{@tag-sojusz}: &2Zmieniono rodzaj zaplaty za zaproszenie na &6przedmiot"
+				if arg 2 is "domnie":
+					if arg 3 is not set:
+						send "{@tag-sojusz}: &4/{@sojusz-komenda} domnie kasa/przedmiot"
+					if arg 3 is "kasa" or "k":
+						set {sojusz.rodzaj.zaplaty.domnietp} to "kasa"
+						send "{@tag-sojusz}: &2Zmieniono rodzaj zaplaty domnie na &6kasa"
+					if arg 3 is "przedmiot" or "p":
+						set {sojusz.rodzaj.zaplaty.domnietp} to "przedmiot"
+						send "{@tag-sojusz}: &2Zmieniono rodzaj zaplaty domnie na &6przedmiot"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "reload" or "przeladuj":
+			if player has permission "sojusz.admin.przeladuj":
+				execute player command "skript reload {@plik-sojusz}"
+				wait 1 tick
+				message "{@tag-sojusz}: &4Przeladowano..."
+				stop
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "czat":
+			if player has permission "sojusz.use.czat":
+				arg 2 is not set:
+					send "&3/{@sojusz-komenda} czat on/off"
+				arg 2 is "on":
+					if size of {sojusz.%name of player%.lista::*} is smaller than 1:
+						send "{@tag-sojusz}: {@sojusz.null.lista}"
+						send "{@tag-sojusz}: {@tag-sczat} &c- nie zostal wlaczony"
+						stop trigger
+					set {sojusz.czat.%name of player%} to true
+					send "{@tag-sojusz}: &fWlaczyles czat sojuszu"
+				arg 2 is "off":
+					set {sojusz.czat.%name of player%} to false
+					send "{@tag-sojusz}: &fWylaczyles czat sojuszu"
+				arg 2 is "info":
+					send "&f[&6Sojusz-Czat&f] &3wysyla wiadomosci do osob z listy twoich sojusznikow"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "online":
+			if player has permission "sojusz.use.online":
+				arg 2 is not set:
+					if size of {sojusz.%name of player%.lista::*} is smaller than 1:
+						send "{@tag-sojusz}: {@sojusz.null.lista}"
+						stop trigger
+					send "{@sojusz.lista.online}:"
+					loop {sojusz.%name of player%.lista::*}:
+						if loop-value parsed as player is online:
+							send "&2%loop-value%"
+			else:
+				send "{@sojusz.perm}"
+		arg 1 is "domnie":
+			arg 2 is not set:
+				if player has permission "sojusz.domnie":
+					if {sojusz.tpdomnie} is true:
+						if size of {sojusz.%name of player%.lista::*} is smaller than 1:
+							send "{@tag-sojusz}: {@sojusz.null.lista}"
+							stop trigger
+						if {_licze.graczy.online.%name of player%} is not set:
+							set {_licze.graczy.online.%name of player%} to 0
+						loop {sojusz.%name of player%.lista::*}:
+							if loop-value parsed as player is online:
+								add 1 to {_licze.graczy.online.%name of player%}
+						if {_licze.graczy.online.%name of player%} is smaller than 1:
+							send "{@tag-sojusz}: {@sojusz.domnie.offline}"
+							stop trigger
+					
+						if {sojusz.rodzaj.zaplaty.domnietp} is "kasa":
+							if player's balance is greater than or equal to {@kasa.za.domnie}:
+								set {sojusz.%name of player%.domnie} to location of player
+								set {_licze.graczy.online.%name of player%} to 0
+								remove {@kasa.za.domnie} from the player's balance
+								loop {sojusz.%name of player%.lista::*}:
+									if loop-value parsed as player is online:
+										teleport the loop-value parsed as player to {sojusz.%name of player%.domnie}
+										send "{@tag-sojusz}: &3%loop-value% zostal przeniesiony"
+							else:
+								send "{@tag-sojusz}: {@sojusz.brak.domnie} {@kasa.za.domnie} $"
+						if {sojusz.rodzaj.zaplaty.domnietp} is "przedmiot":
+							if player has {@przedmiot.za.domnie}:
+								set {sojusz.%name of player%.domnie} to location of player
+								remove {@przedmiot.za.domnie} from player's inventory
+								loop {sojusz.%name of player%.lista::*}:
+									if loop-value parsed as player is online:
+										teleport the loop-value parsed as player to {sojusz.%name of player%.domnie}
+										send "{@tag-sojusz}: &3%loop-value% zostal przeniesiony"
+							else:
+								send "{@tag-sojusz}: {@sojusz.brak.domnie} {@przedmiot.za.domnie}"
+					else:
+						send "{@tag-sojusz}: {@sojusz.domnie.tp.off}"
+				else:
+					send "{@sojusz.perm}"
+			arg 2 is "on":
+				if player has permission "sojusz.admin.domnie":
+					set {sojusz.tpdomnie} to true
+					send "{@tag-sojusz}: &3Wlaczyles Teleport DoMnie"
+				else:
+					send "{@sojusz.perm}"
+			arg 2 is "off":
+				if player has permission "sojusz.admin.domnie":
+					set {sojusz.tpdomnie} to false
+					send "{@tag-sojusz}: &4Wylaczyles Teleport DoMnie"
+				else:
+					send "{@sojusz.perm}"
+		arg 1 is "adminmenu":
+			if player has permission "sojusz.admin.menu":
+				show "s;1;i;stone;n;&fUstawienia;l;&6Wyswieta Ustawienia Sojuszu||&4/sojusz ustawienia;c;xyz %name of player% sojusz ustawienia;s;2;i;grass;n;&fUstawienia Zaproszen;l;&6Placenie Kasa;c;xyz %name of player% sojusz ustawienia zaproszenie kasa;s;11;i;grass;n;&fUstawienia Zaproszen;l;&6Placenie Przedmiotem;c;xyz %name of player% sojusz ustawienia zaproszenie przedmiot;s;3;i;ender chest;n;&fUstawienia Teleportacji;l;&6Placenie Kasa;c;xyz %name of player% sojusz ustawienia teleportacja kasa;s;12;i;ender chest;n;&fUstawienia Teleportacji;l;&6Placenie Przedmiotem;c;xyz %name of player% sojusz ustawienia teleportacja przedmiot;s;4;i;redstone;n;&fUstawienia DoMnie;l;&6Placenie Kasa;c;xyz %name of player% sojusz ustawienia domnie kasa;s;13;i;redstone;n;&fUstawienia DoMnie;l;&6Placenie Przedmiotem;c;xyz %name of player% sojusz ustawienia domnie przedmiot;s;5;i;iron sword;n;&fUstawienia PvP;l;&6Aby wlaczyc ochrone pvp;c;xyz %name of player% sojusz pvp on;s;14;i;iron sword;n;&fUstawienia PvP;l;&6Aby wylaczyc ochrone pvp;c;xyz %name of player% sojusz pvp off;s;6;i;clock;n;&fUstawienia Oczekiwania;l;&6Aby wlaczyc oczekiwanie na tp;c;xyz %name of player% sojusz oczekiwanie on;s;15;i;clock;n;&fUstawienia Oczekiwania;l;&6Aby wylaczyc oczekiwanie na tp;c;xyz %name of player% sojusz oczekiwanie off;s;7;i;compass;n;&fUstawienia Teleportacji;l;&6Aby wlaczyc teleportacje w sojuszu;c;xyz %name of player% sojusz teleportacja on;s;16;i;compass;n;&fUstawienia Teleportacji;l;&6Aby wylaczyc teleportacje w sojuszu;c;xyz %name of player% sojusz teleportacja off;s;27;i;lava bucket;n;&4Reload;l;&6Aby przeladowac skrypt Sojuszu;c;xyz %name of player% sojusz reload;s;8;i;apple;n;&4Ustawienia DoMnie;l;&6Aby wlaczyc teleportacje DoMnie;c;xyz %name of player% sojusz domnie on;s;8;i;apple;n;&fUstawienia DoMnie;l;&6Aby wlaczyc teleportacje DoMnie;c;xyz %name of player% sojusz domnie on;s;17;i;apple;n;&fUstawienia DoMnie;l;&6Aby wylaczyc teleportacje DoMnie;c;xyz %name of player% sojusz domnie off" with 3 rows named "Menu Sojusz by Yooka" to player
+			else:
+				send "{@sojusz.perm}"
+on join:
+	if {sojusz.aktywacja.%name of player%} is not set:
+		set {sojusz.aktywacja.%name of player%} to false
+
+on script load:
+	send "{@sojusz-nazwa} &7zostal uruchomiony... &fWersja: {@wersja-sojusz}&7." to console
+on script unload:
+	send "{@sojusz-nazwa} &7zostal uruchomiony... &fWersja: {@wersja-sojusz}&7." to console
+
+on chat:
+	{sojusz.czat.%name of player%} is true
+	cancel event
+	if size of {sojusz.%player%.lista::*} is greater than 0:
+		send "{@tag-sczat} &6%player%&f: &a%message%"
+		loop {sojusz.%player%.lista::*}:
+			if loop-value parsed as player is online:
+				send "{@tag-sczat} &6%player%&f: &a%message%" to loop-value parsed as player
+
+on death of player:
+	if attacker is a player:
+		if size of {sojusz.%victim%.lista::*} is greater than 0:
+			loop {sojusz.%player%.lista::*}:
+				if loop-value parsed as player is online:
+					send "{@tag-sojusz}: &c&L%victim% zostal zabity przez &d&L%attacker%" to loop-value parsed as player
+
+on damage:
+	if {sojusz.ochronapvp} is true:
+		attacker is a player:
+			victim is a player:
+				loop {sojusz.%attacker%.lista::*}:
+					if loop-value is victim:
+						send "{@tag-sojusz}: {@sojusz.nopvp}" to attacker
+						cancel event
+						exit loop
+		
+#---Wymagany dodatek SkriptPlus v1.4 ----#
+command /xyz [<player>] [<text>]:
+	executable by: console
+	trigger:
+		execute argument 1 command "%argument 2%"
+
